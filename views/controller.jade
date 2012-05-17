@@ -1,0 +1,43 @@
+extends layout
+
+block chat
+
+block intro
+  div#intro(class="talk-page")
+    article(class="entry")
+      h2 Go!
+
+block scripts
+  script
+    window.nowpage = #{nowpage};
+  :coffeescript
+    App = {}
+    App.init = ->
+      App.socket = io.connect(location.protocol+'//'+location.hostname)
+      return
+
+    $ ->
+      $("#main").css({
+        top: ($(window).height() - 320)/2 - 30,
+        left: ($(window).width() - 480)/2
+      }).iphoneSlide {
+        maxShiftPage: 1,
+        handler: '#lighting_talk',
+        pageHandler: '.talk-page',
+        onShiftComplete: (elem, page) ->
+          App.socket.emit "control-slide", {page: page}
+      }
+
+      $("#main").iphoneSlide('slide2page', window.nowpage);
+
+      $(window).bind 'orientationchange resize', (event)->
+        $("#main").css {
+          top: ($(window).height() - 320)/2 - 30,
+          left: ($(window).width() - 480)/2
+        }
+        $("#main").iphoneSlide('slide2page', window.nowpage);
+
+
+      App.init()
+
+      return

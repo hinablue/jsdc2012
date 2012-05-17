@@ -1,0 +1,197 @@
+extends layout
+
+block intro
+  div#intro(class="talk-page")
+    article(class="entry")
+      h2 HOWTO
+      br
+      p Use
+        button(class="btn") j
+        &nbsp;or
+        button(class="btn") k
+        &nbsp;to PageUp/PageDown
+      p Or Swipe this Persentation
+
+
+block chat
+  form#chatroom(class="well form-inline")
+    - if (nickname == "")
+      span#nick
+        label Nickname:&nbsp;
+        input#nickname(type="text", class="input-small", placeholder="Nickname")
+        span#help-nick(class="help-nickname help-inline") 12 words you can use.
+    - else
+      span#nick
+        label Nickname:&nbsp;
+        input#nickname(type="text", class="input-small", placeholder="Nickname", value= nickname)
+        span#help-nick(class="help-nickname help-inline") 12 words you can use.
+
+    span#msg
+      label Say:&nbsp;
+      input#message(type="text", class="input-small span3", placeholder="Message", value="")
+    &nbsp;
+    button#chat-button(type="submit", class="btn btn-success") Go
+    &nbsp;
+    button#clear-canvas(type="button", class="btn btn-warning") Clear Canvas
+    &nbsp;
+    button#do-not-press(type="button", class="btn btn-danger") DON'T PRESS
+
+block scripts
+  script
+  :coffeescript
+    App = {}
+    App.canvas = null
+    App.initCanvas = ->
+      App.canvas = $("#playground")[0].getContext('2d')
+      App.canvas.fillStyle = "solid"
+      App.canvas.strokeStyle = "rgb("+Math.ceil(Math.random()*255)+","+Math.ceil(Math.random()*255)+","+Math.ceil(Math.random()*255)+")"
+      App.canvas.lineCap = "round"
+      App.canvas.lineWidth = 5
+
+    App.init = ->
+      App.initCanvas()
+      console.log App.canvas
+      App.socket = io.connect(location.protocol+'//'+location.hostname)
+      App.socket.on "draw", (data) ->
+        App.draw(data.x, data.y, data.type)
+      App.socket.on "slide", (data) ->
+        $("#main").iphoneSlide "slide2page", data.page
+      App.socket.on "message", (data) ->
+        App.chat data.nickname, data.message
+
+      App.chat = (nick, msg) ->
+        messageholder = '<li><ul><li class="nickname"><span class="label label-white">'+nick+'</span>'
+        messageholder += '<span class="label label-important">say</span></li>'
+        messageholder += '<li class="message"><span class="label label-white">'+msg+'</span></li>'
+        messageholder += '<li class="timestamp"><span class="label label-info">'+(new Date()).getHours()+':'+(new Date()).getMinutes()+'</span></li></ul></li>'
+        $("#messages").append(messageholder)
+
+        $("#chat").prop({ scrollTop: $("#chat").prop("scrollHeight") })
+
+        nickname = null
+        message = null
+        messageholder = null
+        return
+
+      App.draw = (x, y, type) ->
+        if type is "dragstart"
+          App.canvas.beginPath()
+          App.canvas.moveTo(x, y)
+        else if type is "drag"
+          App.canvas.lineTo(x, y)
+          App.canvas.stroke()
+        else
+          App.canvas.save()
+          App.canvas.strokeStyle = "rgb("+Math.ceil(Math.random()*255)+","+Math.ceil(Math.random()*255)+","+Math.ceil(Math.random()*255)+")"
+
+      App.clear = (width, height) ->
+        App.canvas.clearRect 0, 0, width, height
+      return
+
+    $("#playground").bind "drag dragstart dragend", (event) ->
+      type = event.handleObj.type
+      offset = $(@).offset()
+
+      event.offsetX = event.pageX - offset.left
+      event.offsetY = event.pageY - offset.top
+      x = event.offsetX
+      y = event.offsetY
+      App.draw(x,y,type)
+      App.socket.emit "drawClick", { x : x, y : y, type : type }
+      return
+
+    $ ->
+      chat = no
+
+      $("#main").css({
+        top: ($(window).height() - 320)/2 - 30,
+        left: ($(window).width() - 480)/2
+      }).iphoneSlide {
+        maxShiftPage: 1,
+        handler: '#lighting_talk',
+        pageHandler: '.talk-page'
+      }
+      $("#chat").css {
+        top: $("#header").height(),
+        height: $("#footer").offset().top - $("#header").height()
+      }
+      $("#playground").prop {
+        width: $(window).width(),
+        height: $(window).height()
+      }
+      $("#clear-canvas").click (event) ->
+        event.preventDefault()
+        App.clear $(window).width(), $(window).height()
+      $("#do-not-press").click (event) ->
+        event.preventDefault()
+        $('#main').hide()
+
+      $("#chat-button").click (event) ->
+        event.preventDefault()
+        nickname = $("#nickname").prop "value"
+
+        if nickname.length > 12 or nickname.length <= 0
+          $("#nickname").prop "value", ""
+          $("#help-nick").text("Oops, error la~")
+          .animate {opacity: 0}, 1000, () ->
+            $(@).text("12 words you can use.").css "opacity", 1
+        else
+          if chat is no
+            $.ajax {
+              url: "/chat",
+              type: "post",
+              data: {nickname: $("#nickname").prop "value"},
+              success: (data) ->
+                chat = yes
+                $("#nick").hide()
+                $("label", "#msg").text($("#nickname").prop("value")+": ")
+                $("#msg").show()
+
+                App.socket.emit "message", {nickname: $("#nickname").prop("value"), message: "我又跳進來啦..."}, (response) ->
+                  return
+            }
+        message = $("#message").prop "value"
+        if message.length > 0
+          App.socket.emit "message", {nickname: nickname, message: message}, (response) ->
+            App.chat nickname, message
+            $("#message").prop "value", ""
+
+      detectChat = ->
+        if $(window).height() <= 480
+          $('#chatroom').hide()
+          $('#main').css('top', $('#header').height())
+        else
+          $('#chatroom').show()
+          $('#main').css('top', ($(window).height() - 320)/2 - 30)
+        App.clear($(window).width(), $(window).height())
+        App.initCanvas()
+
+      $(window).bind 'orientationchange resize', (event)->
+        $("#main").css {
+          top: ($(window).height() - 320)/2 - 30,
+          left: ($(window).width() - 480)/2
+        }
+        $("#chat").css {
+          top: $("#header").height(),
+          height: $("#footer").offset().top - $("#header").height()
+        }
+        $("#playground").prop {
+          width: $(window).width(),
+          height: $(window).height()
+        }
+        detectChat()
+
+      $(window).bind 'keypress', (event)->
+        event.preventDefault()
+        keycode = event.which or event.keyCode or event.charCode
+
+        switch keycode
+          when 106
+            $("#main").iphoneSlide "slide2page", "next"
+          when 107
+            $("#main").iphoneSlide "slide2page", "prev"
+
+      App.init()
+      detectChat()
+
+      return

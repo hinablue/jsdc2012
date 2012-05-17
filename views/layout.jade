@@ -1,0 +1,48 @@
+!!! 5
+html(leng="en")
+  head
+    meta(charset="utf-8")
+    meta(name="description", content="JSDC.tw")
+    meta(name="HandheldFriendly", content="true")
+    meta(name="MobileOptimized", content="480")
+    meta(name="viewport", content="width=device-width,user-scalable=no")
+    meta(name="apple-mobile-web-app-capable", content="true")
+    meta(name="apple-mobile-web-app-status-bar-style", content="black")
+    meta(http-equiv="cleartype", content="on")
+    meta(http-equiv="X-UA-Compatible", content="IE=edge")
+    title Hello JSDC
+    link(rel="shortcut icon", href="/favicon.ico")
+    link(rel="stylesheet", href="/stylesheets/screen.css")
+    link(rel="stylesheet", href="/stylesheets/bootstrap.min.css")
+    link(rel="stylesheet", href="/stylesheets/bootstrap-responsive.min.css")
+    script(src="/socket.io/socket.io.js")
+  body
+    div#container
+      header#header
+        h1 JSDC, 台灣第一屆 Javascript 研討會
+      div#chat
+        ul#messages
+      canvas#playground
+      div#main
+        div#lighting_talk
+          block intro
+          include slidepages
+      footer#footer
+        block chat
+        p &copy; Do What The Fuck You Want To Public License
+
+    script(src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.7.2/jquery.min.js")
+    script(src="/javascripts/jquery.event.drag.min.js")
+    script(src="/javascripts/bootstrap.min.js")
+    script(src="/javascripts/iphone-slide.min.js")
+    block scripts
+    script
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-259895-25']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
