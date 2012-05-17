@@ -28,9 +28,9 @@ NodeJS NPM Requirement
 How to start
 ============
 
-`$ git clone git://github.com/hinablue/jsdc2012.git`
-`$ cd jsdc2012`
-`$ node web.js`
+    $ git clone git://github.com/hinablue/jsdc2012.git
+    $ cd jsdc2012
+    $ node web.js
 
 Working URL
 ===========
