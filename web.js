@@ -113,13 +113,11 @@
       var _this = this;
       this.io = require('socket.io').listen(this.app);
       this.io.configure(function() {
-        var HTTPPolling, XHRPolling, path;
         _this.io.enable("browser client minification");
         _this.io.enable("browser client etag");
         _this.io.enable("browser client gzip");
         _this.io.set("log level", 1);
-        _this.io.set("transports", ["xhr-polling"]);
-        _this.io.set('authorization', function(data, callback) {
+        return _this.io.set('authorization', function(data, callback) {
           if (data.headers.cookie != null) {
             data.cookie = parseCookie(data.headers.cookie);
             data.sessID = data.cookie['connect.sid'];
@@ -134,26 +132,6 @@
             return callback(new Error("No cookie transmitted!"));
           }
         });
-        path = require("path");
-        HTTPPolling = require(path.join(path.dirname(require.resolve('socket.io')), 'lib', 'transports', 'http-polling'));
-        XHRPolling = require(path.join(path.dirname(require.resolve('socket.io')), 'lib', 'transports', 'xhr-polling'));
-        return XHRPolling.prototype.doWrite = function(data) {
-          var headers;
-          HTTPPolling.prototype.doWrite.call(this);
-          headers = {
-            'Content-Type': 'text/plain; charset=utf-8',
-            'Content-Length': (data && Buffer.byteLength(data)) || 0
-          };
-          if (this.req.headers.origin) {
-            headers['Access-Controll-Allow-Origin'] = '*';
-            if (this.req.headers.cookie) {
-              headers['Access-Controll-Allow-Credentials'] = 'true';
-            }
-          }
-          this.response.writeHead(200, headers);
-          this.response.write(data);
-          return console.info(this.name + ' writting', data);
-        };
       });
       return this.io.on('connection', function(client) {
         var cookie, hkey, hs, nowpage;

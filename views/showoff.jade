@@ -13,6 +13,7 @@ block chat
 
 block scripts
   script
+    window.lighting_talk = 0;
   :coffeescript
     App = {}
     App.canvas = null
@@ -26,7 +27,7 @@ block scripts
     App.init = ->
       App.initCanvas()
       console.log App.canvas
-      App.socket = io.connect(location.protocol+'//'+location.hostname)
+      App.socket = io.connect(location.protocol+'//'+location.hostname+':3000')
       App.socket.on "draw", (data) ->
         App.draw(data.x, data.y, data.type)
       App.socket.on "slide", (data) ->
@@ -84,7 +85,9 @@ block scripts
       }).iphoneSlide {
         maxShiftPage: 1,
         handler: '#lighting_talk',
-        pageHandler: '.talk-page'
+        pageHandler: '.talk-page',
+        onShiftComplete: (e, p)->
+          window.lighting_talk = parseInt($('#lighting_talk').css('left))
       }
       $("#chat").css {
         top: $("#header").height(),
@@ -108,6 +111,7 @@ block scripts
           top: ($(window).height() - 320)/2 - 30,
           left: ($(window).width() - 480)/2
         }
+        $('#lighting_talk').css('left', window.lighting_talk.toString()+'px')
         $("#chat").css {
           top: $("#header").height(),
           height: $("#footer").offset().top - $("#header").height()

@@ -10,10 +10,11 @@ block intro
 block scripts
   script
     window.nowpage = #{nowpage};
+    window.lighting_talk = 0;
   :coffeescript
     App = {}
     App.init = ->
-      App.socket = io.connect(location.protocol+'//'+location.hostname)
+      App.socket = io.connect(location.protocol+'//'+location.hostname+':3000')
       return
 
     $ ->
@@ -26,6 +27,7 @@ block scripts
         pageHandler: '.talk-page',
         onShiftComplete: (elem, page) ->
           App.socket.emit "control-slide", {page: page}
+          window.lighting_talk = parseInt($('#lighting_talk').css('left'))
       }
 
       $("#main").iphoneSlide('slide2page', window.nowpage);
@@ -35,8 +37,7 @@ block scripts
           top: ($(window).height() - 320)/2 - 30,
           left: ($(window).width() - 480)/2
         }
-        $("#main").iphoneSlide('slide2page', window.nowpage);
-
+        $('#lighting_talk').css('left', window.lighting_talk.toString()+'px')
 
       App.init()
 

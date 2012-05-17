@@ -79,9 +79,6 @@ class App
       @io.enable "browser client etag"
       @io.enable "browser client gzip"
       @io.set "log level", 1
-      @io.set "transports", [
-        "xhr-polling"
-      ]
 
       @io.set 'authorization', (data, callback) =>
         if data.headers.cookie?
@@ -94,24 +91,6 @@ class App
               callback null, true
         else
           callback new Error "No cookie transmitted!"
-
-      path = require "path"
-      HTTPPolling = require(path.join(path.dirname(require.resolve('socket.io')), 'lib', 'transports', 'http-polling'))
-      XHRPolling = require(path.join(path.dirname(require.resolve('socket.io')), 'lib', 'transports', 'xhr-polling'))
-      XHRPolling.prototype.doWrite = (data)->
-        HTTPPolling.prototype.doWrite.call(@)
-        headers =
-          'Content-Type': 'text/plain; charset=utf-8'
-          'Content-Length': (data and Buffer.byteLength(data)) or 0
-
-        if @req.headers.origin
-          headers['Access-Controll-Allow-Origin'] = '*'
-          if @req.headers.cookie
-            headers['Access-Controll-Allow-Credentials'] = 'true'
-
-        @response.writeHead 200, headers
-        @response.write data
-        console.info @name+' writting', data
 
     @io.on 'connection', (client) =>
       console.info "Got connected to server!"
