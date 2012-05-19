@@ -185,15 +185,16 @@ block scripts
         }
         detectChat()
 
-      $(window).bind 'keypress', (event)->
-        event.preventDefault()
+      $(window).bind 'keydown', (event)->
         keycode = event.which or event.keyCode or event.charCode
 
         switch keycode
-          when 106
+          when 40
             $("#main").iphoneSlide "slide2page", "next"
-          when 107
+          when 38
             $("#main").iphoneSlide "slide2page", "prev"
+          else
+            return true
 
       App.init()
       detectChat()
